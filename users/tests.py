@@ -5,12 +5,16 @@ from rest_framework import status
 
 
 class UserTestCase(APITestCase):
+    """Тест пользователей"""
+
     def setUp(self) -> None:
+        """Создание условий для теста"""
         self.client = APIClient()
         self.user = User.objects.create(email='test@test.com', password='12345')
         self.client.force_authenticate(user=self.user)
 
     def test_list_users(self):
+        """Тест списка пользователей"""
         response = self.client.get(
             reverse('users:users'),
         )
@@ -25,7 +29,8 @@ class UserTestCase(APITestCase):
             [{'id': self.user.pk, 'email': 'test@test.com', 'avatar': None, 'phone': None, 'city': None}]
         )
 
-    def test_create_users(self):
+    def test_create_user(self):
+        """Тест создания пользователей"""
         data = {
             "email": '1@ya.ru',
             "password": "123456"
@@ -38,7 +43,8 @@ class UserTestCase(APITestCase):
                          {'id': self.user.pk + 1, 'email': '1@ya.ru', 'avatar': None, 'phone': None, 'city': None,
                           'password': '123456'})
 
-    def test_retrieve_users(self):
+    def test_retrieve_user(self):
+        """Тест просмотра пользователя"""
         response = self.client.get(
             reverse('users:user', kwargs={'pk': self.user.pk}),
         )
@@ -52,7 +58,8 @@ class UserTestCase(APITestCase):
                          {'id': self.user.pk, 'email': 'test@test.com', 'avatar': None, 'phone': None, 'city': None,
                           'password': '12345'})
 
-    def test_update_users(self):
+    def test_update_user(self):
+        """Тест обновления пользователя"""
         data = {
             "email": '12@ya.ru',
             "password": "1234567"
@@ -74,7 +81,8 @@ class UserTestCase(APITestCase):
              'password': '1234567'}
         )
 
-    def test_delete_users(self):
+    def test_delete_user(self):
+        """Тест удаления пользователя"""
         response = self.client.delete(
             reverse('users:user_delete', kwargs={'pk': self.user.pk}),
         )
