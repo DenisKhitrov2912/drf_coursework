@@ -6,7 +6,10 @@ from rest_framework import status
 
 
 class HabitTestCase(APITestCase):
+    """Тестирование привычек"""
+
     def setUp(self) -> None:
+        """Создание условий для теста"""
         self.client = APIClient()
         self.user = User.objects.create(email='test@test.com', password='12345')
         self.client.force_authenticate(user=self.user)
@@ -14,6 +17,7 @@ class HabitTestCase(APITestCase):
                                           time_to_complete=100, is_public=True)
 
     def test_list_habits(self):
+        """Тест списка с пагинацией"""
         response = self.client.get(
             reverse('habits:habits'),
         )
@@ -40,6 +44,7 @@ class HabitTestCase(APITestCase):
         )
 
     def test_create_habit(self):
+        """Тест создания"""
         data = {
             'action': '3',
             'is_public': True,
@@ -66,6 +71,7 @@ class HabitTestCase(APITestCase):
                           'user': self.user.id})
 
     def test_retrieve_habit(self):
+        """Тест одной привычки"""
         response = self.client.get(
             reverse('habits:habit', kwargs={'pk': self.habit.pk}),
         )
@@ -89,6 +95,7 @@ class HabitTestCase(APITestCase):
                           'user': self.user.id})
 
     def test_update_habit(self):
+        """Тест обновления"""
         data = {
             'action': '3',
             'periodicity': 5
@@ -120,6 +127,7 @@ class HabitTestCase(APITestCase):
         )
 
     def test_delete_habit(self):
+        """Тест удаления"""
         response = self.client.delete(
             reverse('habits:habit_delete', kwargs={'pk': self.habit.pk}),
         )
@@ -130,6 +138,7 @@ class HabitTestCase(APITestCase):
         )
 
     def test_validator_rel_rew(self):
+        """Тест валидатора связанной привычки + вознаграждения"""
         data = {
             'id': self.habit.id,
             'action': '3',
@@ -148,9 +157,139 @@ class HabitTestCase(APITestCase):
             response.status_code,
             status.HTTP_400_BAD_REQUEST
         )
-        print(response.json())
 
         self.assertEqual(
             response.json(),
-            {'video': ['Incorrect YouTube URL']}
+            ['Нельзя одновременно выбирать связанную привычку и указывать вознаграждение.']
+        )
+
+    def test_validator_time_comp(self):
+        """Тест валидатора времени выполнения"""
+        data = {
+            'id': self.habit.id,
+            'action': '3',
+            'is_public': True,
+            'periodicity': 5,
+            'place': '1',
+            'time': '18:00:00',
+            'time_to_complete': 180,
+            'user': self.user.id
+        }
+
+        response = self.client.post(reverse('habits:habit_create'), data=data)
+
+        self.assertEqual(
+            response.status_code,
+            status.HTTP_400_BAD_REQUEST
+        )
+
+        self.assertEqual(
+            response.json(),
+            ['Время выполнения должно быть не больше 120 секунд.']
+        )
+
+    def test_validator_nice_rel(self):
+        """Тест валидатора связанной и приятной привычек"""
+        data = {
+            'id': self.habit.id,
+            'action': '3',
+            'is_public': True,
+            'is_nice_habit': True,
+            'periodicity': 5,
+            'place': '1',
+            'related_habit': self.habit.id,
+            'time': '18:00:00',
+            'time_to_complete': 100,
+            'user': self.user.id
+        }
+
+        response = self.client.post(reverse('habits:habit_create'), data=data)
+
+        self.assertEqual(
+            response.status_code,
+            status.HTTP_400_BAD_REQUEST
+        )
+
+        self.assertEqual(
+            response.json(),
+            ['У приятной привычки не может быть вознаграждения или связанной привычки.']
+        )
+
+    def test_validator_nice_rew(self):
+        """Тест валидатора вознаграждения и приятной привычки"""
+        data = {
+            'id': self.habit.id,
+            'action': '3',
+            'is_public': True,
+            'is_nice_habit': True,
+            'periodicity': 5,
+            'place': '1',
+            'reward': '1000',
+            'time': '18:00:00',
+            'time_to_complete': 100,
+            'user': self.user.id
+        }
+
+        response = self.client.post(reverse('habits:habit_create'), data=data)
+
+        self.assertEqual(
+            response.status_code,
+            status.HTTP_400_BAD_REQUEST
+        )
+
+        self.assertEqual(
+            response.json(),
+            ['У приятной привычки не может быть вознаграждения или связанной привычки.']
+        )
+
+    def test_validator_period(self):
+        """Тест валидатора периодичности"""
+        data = {
+            'id': self.habit.id,
+            'action': '3',
+            'is_public': True,
+            'periodicity': 10,
+            'place': '1',
+            'time': '18:00:00',
+            'time_to_complete': 100,
+            'user': self.user.id
+        }
+
+        response = self.client.post(reverse('habits:habit_create'), data=data)
+
+        self.assertEqual(
+            response.status_code,
+            status.HTTP_400_BAD_REQUEST
+        )
+
+        self.assertEqual(
+            response.json(),
+            ['Нельзя выполнять привычку реже, чем 1 раз в 7 дней.']
+        )
+
+    def test_validator_rel_is_nice(self):
+        """Тест валидатора связанных + приятных привычек"""
+        data = {
+            'id': self.habit.id,
+            'action': '3',
+            'is_public': True,
+            'is_nice_habit': False,
+            'periodicity': 5,
+            'place': '1',
+            'related_habit': self.habit.id,
+            'time': '18:00:00',
+            'time_to_complete': 100,
+            'user': self.user.id
+        }
+
+        response = self.client.post(reverse('habits:habit_create'), data=data)
+
+        self.assertEqual(
+            response.status_code,
+            status.HTTP_400_BAD_REQUEST
+        )
+
+        self.assertEqual(
+            response.json(),
+            ['В связанные привычки могут попадать только привычки с признаком приятной привычки.']
         )
