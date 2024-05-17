@@ -16,9 +16,13 @@ class HabitTestCase(APITestCase):
     def setUp(self) -> None:
         """Создание условий для теста"""
         self.client = APIClient()
-        self.user = User.objects.create(email='test@test.com', password='12345', chat_id='12345')
+        self.user = User.objects.create(email='test@test.com',
+                                        password='12345',
+                                        chat_id='12345')
         self.client.force_authenticate(user=self.user)
-        self.habit = Habit.objects.create(user=self.user, place='1', time='18:00:00', action='2', periodicity=2,
+        self.habit = Habit.objects.create(user=self.user, place='1',
+                                          time='18:00:00', action='2',
+                                          periodicity=2,
                                           time_to_complete=100, is_public=True)
 
     def test_list_habits(self):
@@ -169,7 +173,8 @@ class HabitTestCase(APITestCase):
 
         self.assertEqual(
             response.json(),
-            ['Нельзя одновременно выбирать связанную привычку и указывать вознаграждение.']
+            ['Нельзя одновременно выбирать связанную'
+             ' привычку и указывать вознаграждение.']
         )
 
     def test_validator_time_comp(self):
@@ -221,7 +226,8 @@ class HabitTestCase(APITestCase):
 
         self.assertEqual(
             response.json(),
-            ['У приятной привычки не может быть вознаграждения или связанной привычки.']
+            ['У приятной привычки не может быть '
+             'вознаграждения или связанной привычки.']
         )
 
     def test_validator_nice_rew(self):
@@ -248,7 +254,8 @@ class HabitTestCase(APITestCase):
 
         self.assertEqual(
             response.json(),
-            ['У приятной привычки не может быть вознаграждения или связанной привычки.']
+            ['У приятной привычки не может быть '
+             'вознаграждения или связанной привычки.']
         )
 
     def test_validator_period(self):
@@ -300,7 +307,8 @@ class HabitTestCase(APITestCase):
 
         self.assertEqual(
             response.json(),
-            ['В связанные привычки могут попадать только привычки с признаком приятной привычки.']
+            ['В связанные привычки могут попадать'
+             ' только привычки с признаком приятной привычки.']
         )
 
     @patch('habits.services.requests.post')

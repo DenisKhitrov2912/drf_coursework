@@ -4,7 +4,6 @@ from rest_framework.permissions import IsAuthenticated, IsAdminUser
 from habits.models import Habit
 from habits.paginators import HabitsPagination
 from habits.serializers import HabitSerializer
-from habits.tasks import tlg_sending
 from users.permissions import IsUserOwner
 
 

@@ -22,7 +22,8 @@ class UserCreateView(generics.CreateAPIView):
         user.set_password(password)
         user.save()
 
-        return Response(serializer.data, status=status.HTTP_201_CREATED, headers=headers)
+        return Response(serializer.data, status=status.HTTP_201_CREATED,
+                        headers=headers)
 
 
 class UserDetailView(generics.RetrieveAPIView):

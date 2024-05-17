@@ -19,7 +19,9 @@ def tlg_sending():
 
     for habit in habits:
         if time_start.time() <= habit.time <= time_end.time():
-            if habit.last_reminder is None or (time_now - habit.last_reminder).days >= habit.periodicity:
+            if (habit.last_reminder is None or
+                    (time_now - habit.last_reminder).days
+                    >= habit.periodicity):
                 message = f"""Напоминание о привычке: {habit.action}.
 Займитесь приятной привычкой или получите вознаграждение после выполнения!"""
                 send_message(token=token,
