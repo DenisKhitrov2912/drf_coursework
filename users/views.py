@@ -8,6 +8,7 @@ from users.serializers import UserSerializer, UserSerializerForOthers
 
 
 class UserCreateView(generics.CreateAPIView):
+    """Создание пользователя"""
     serializer_class = UserSerializer
 
     def create(self, request, *args, **kwargs):
@@ -25,6 +26,7 @@ class UserCreateView(generics.CreateAPIView):
 
 
 class UserDetailView(generics.RetrieveAPIView):
+    """Просмотр пользователя"""
     permission_classes = [IsAuthenticated]
     queryset = User.objects.all()
 
@@ -35,17 +37,20 @@ class UserDetailView(generics.RetrieveAPIView):
 
 
 class UserUpdateView(generics.UpdateAPIView):
+    """Обновление пользователя"""
     serializer_class = UserSerializer
     queryset = User.objects.all()
     permission_classes = [IsAuthenticated, IsUserUser]
 
 
 class UserDeleteView(generics.DestroyAPIView):
+    """Удаление пользоватлея"""
     queryset = User.objects.all()
     permission_classes = [IsAuthenticated, IsUserUser | IsAdminUser]
 
 
 class UserListView(generics.ListAPIView):
+    """Список пользователей"""
     serializer_class = UserSerializerForOthers
     queryset = User.objects.all()
     permission_classes = [IsAuthenticated]

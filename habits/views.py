@@ -4,10 +4,12 @@ from rest_framework.permissions import IsAuthenticated, IsAdminUser
 from habits.models import Habit
 from habits.paginators import HabitsPagination
 from habits.serializers import HabitSerializer
+from habits.tasks import tlg_sending
 from users.permissions import IsUserOwner
 
 
 class HabitCreateAPIView(generics.CreateAPIView):
+    """Создание привычки"""
     serializer_class = HabitSerializer
     permission_classes = [IsAuthenticated]
 
@@ -16,6 +18,7 @@ class HabitCreateAPIView(generics.CreateAPIView):
 
 
 class HabitListAPIView(generics.ListAPIView):
+    """Список привычек"""
     serializer_class = HabitSerializer
     queryset = Habit.objects.all()
     pagination_class = HabitsPagination
@@ -32,24 +35,27 @@ class HabitListAPIView(generics.ListAPIView):
 
 
 class HabitDetailAPIView(generics.RetrieveAPIView):
+    """Одна привычка"""
     serializer_class = HabitSerializer
     queryset = Habit.objects.all()
     permission_classes = [IsAuthenticated, IsUserOwner | IsAdminUser]
 
 
 class HabitUpdateAPIView(generics.UpdateAPIView):
+    """Обновление привычки"""
     serializer_class = HabitSerializer
     queryset = Habit.objects.all()
     permission_classes = [IsAuthenticated, IsUserOwner]
 
 
 class HabitDestroyAPIView(generics.DestroyAPIView):
+    """Удаление привычки"""
     queryset = Habit.objects.all()
     permission_classes = [IsAuthenticated, IsUserOwner | IsAdminUser]
 
 
 class HabitPublicListAPIView(generics.ListAPIView):
+    """Список публичных привычек"""
     serializer_class = HabitSerializer
     queryset = Habit.objects.filter(is_public=True)
     permission_classes = [IsAuthenticated]
-
