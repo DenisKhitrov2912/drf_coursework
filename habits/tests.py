@@ -1,4 +1,9 @@
+import os
+from unittest.mock import patch
+
 from rest_framework.test import APITestCase, APIClient
+
+from habits.services import send_message
 from users.models import User
 from habits.models import Habit
 from django.urls import reverse
@@ -11,9 +16,13 @@ class HabitTestCase(APITestCase):
     def setUp(self) -> None:
         """Создание условий для теста"""
         self.client = APIClient()
-        self.user = User.objects.create(email='test@test.com', password='12345')
+        self.user = User.objects.create(email='test@test.com',
+                                        password='12345',
+                                        chat_id='12345')
         self.client.force_authenticate(user=self.user)
-        self.habit = Habit.objects.create(user=self.user, place='1', time='18:00:00', action='2', periodicity=2,
+        self.habit = Habit.objects.create(user=self.user, place='1',
+                                          time='18:00:00', action='2',
+                                          periodicity=2,
                                           time_to_complete=100, is_public=True)
 
     def test_list_habits(self):
@@ -37,6 +46,7 @@ class HabitTestCase(APITestCase):
                           'periodicity': 2,
                           'place': '1',
                           'related_habit': None,
+                          'last_reminder': None,
                           'reward': None,
                           'time': '18:00:00',
                           'time_to_complete': 100,
@@ -65,6 +75,7 @@ class HabitTestCase(APITestCase):
                           'periodicity': 3,
                           'place': '3',
                           'related_habit': None,
+                          'last_reminder': None,
                           'reward': None,
                           'time': '18:30:00',
                           'time_to_complete': 100,
@@ -89,6 +100,7 @@ class HabitTestCase(APITestCase):
                           'periodicity': 2,
                           'place': '1',
                           'related_habit': None,
+                          'last_reminder': None,
                           'reward': None,
                           'time': '18:00:00',
                           'time_to_complete': 100,
@@ -120,6 +132,7 @@ class HabitTestCase(APITestCase):
              'periodicity': 5,
              'place': '1',
              'related_habit': None,
+             'last_reminder': None,
              'reward': None,
              'time': '18:00:00',
              'time_to_complete': 100,
@@ -160,7 +173,8 @@ class HabitTestCase(APITestCase):
 
         self.assertEqual(
             response.json(),
-            ['Нельзя одновременно выбирать связанную привычку и указывать вознаграждение.']
+            ['Нельзя одновременно выбирать связанную'
+             ' привычку и указывать вознаграждение.']
         )
 
     def test_validator_time_comp(self):
@@ -212,7 +226,8 @@ class HabitTestCase(APITestCase):
 
         self.assertEqual(
             response.json(),
-            ['У приятной привычки не может быть вознаграждения или связанной привычки.']
+            ['У приятной привычки не может быть '
+             'вознаграждения или связанной привычки.']
         )
 
     def test_validator_nice_rew(self):
@@ -239,7 +254,8 @@ class HabitTestCase(APITestCase):
 
         self.assertEqual(
             response.json(),
-            ['У приятной привычки не может быть вознаграждения или связанной привычки.']
+            ['У приятной привычки не может быть '
+             'вознаграждения или связанной привычки.']
         )
 
     def test_validator_period(self):
@@ -281,6 +297,33 @@ class HabitTestCase(APITestCase):
             'time_to_complete': 100,
             'user': self.user.id
         }
+        
+        response = self.client.post(reverse('habits:habit_create'), data=data)
+
+        self.assertEqual(
+            response.status_code,
+            status.HTTP_400_BAD_REQUEST
+        )
+
+        self.assertEqual(
+            response.json(),
+            ['Нельзя выполнять привычку реже, чем 1 раз в 7 дней.']
+        )
+
+    def test_validator_rel_is_nice(self):
+        """Тест валидатора связанных + приятных привычек"""
+        data = {
+            'id': self.habit.id,
+            'action': '3',
+            'is_public': True,
+            'is_nice_habit': False,
+            'periodicity': 5,
+            'place': '1',
+            'related_habit': self.habit.id,
+            'time': '18:00:00',
+            'time_to_complete': 100,
+            'user': self.user.id
+        }
 
         response = self.client.post(reverse('habits:habit_create'), data=data)
 
@@ -291,5 +334,22 @@ class HabitTestCase(APITestCase):
 
         self.assertEqual(
             response.json(),
+            ['В связанные привычки могут попадать'
+             ' только привычки с признаком приятной привычки.']
+        )
+
+    @patch('habits.services.requests.post')
+    def test_send_message(self, mock_post):
+        """Тест функции отправки сообщений"""
+        token = os.getenv('TELEGRAM_TOKEN')
+        chat_id = os.getenv('CHAT_ID')
+        message = '123'
+        expected_response = mock_post.return_value.json.return_value
+        response = send_message(token, chat_id, message)
+        self.assertEqual(response, expected_response)
+        mock_post.assert_called_once_with(
+            f"https://api.telegram.org/bot{token}/sendMessage",
+            data={"chat_id": chat_id, "text": message}
+=======
             ['В связанные привычки могут попадать только привычки с признаком приятной привычки.']
         )

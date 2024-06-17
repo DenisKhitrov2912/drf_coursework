@@ -10,7 +10,8 @@ class UserTestCase(APITestCase):
     def setUp(self) -> None:
         """Создание условий для теста"""
         self.client = APIClient()
-        self.user = User.objects.create(email='test@test.com', password='12345')
+        self.user = User.objects.create(email='test@test.com',
+                                        password='12345', chat_id='12345')
         self.client.force_authenticate(user=self.user)
 
     def test_list_users(self):
@@ -26,22 +27,26 @@ class UserTestCase(APITestCase):
 
         self.assertEqual(
             response.json(),
-            [{'id': self.user.pk, 'email': 'test@test.com', 'avatar': None, 'phone': None, 'city': None}]
+            [{'id': self.user.pk, 'email': 'test@test.com',
+              'avatar': None, 'phone': None, 'city': None,
+              'chat_id': '12345'}]
         )
 
     def test_create_user(self):
         """Тест создания пользователей"""
         data = {
             "email": '1@ya.ru',
-            "password": "123456"
+            "password": "123456",
+            'chat_id': '1234'
         }
         response = self.client.post(reverse('users:user_create'), data=data)
 
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
 
         self.assertEqual(response.json(),
-                         {'id': self.user.pk + 1, 'email': '1@ya.ru', 'avatar': None, 'phone': None, 'city': None,
-                          'password': '123456'})
+                         {'id': self.user.pk + 1, 'email': '1@ya.ru',
+                          'avatar': None, 'phone': None, 'city': None,
+                          'password': '123456', 'chat_id': '1234'})
 
     def test_retrieve_user(self):
         """Тест просмотра пользователя"""
@@ -55,14 +60,16 @@ class UserTestCase(APITestCase):
         )
 
         self.assertEqual(response.json(),
-                         {'id': self.user.pk, 'email': 'test@test.com', 'avatar': None, 'phone': None, 'city': None,
-                          'password': '12345'})
+                         {'id': self.user.pk, 'email': 'test@test.com',
+                          'avatar': None, 'phone': None, 'city': None,
+                          'password': '12345', 'chat_id': '12345'})
 
     def test_update_user(self):
         """Тест обновления пользователя"""
         data = {
             "email": '12@ya.ru',
-            "password": "1234567"
+            "password": "1234567",
+            'chat_id': '2345'
         }
         response = self.client.patch(
             reverse('users:user_update', kwargs={'pk': self.user.pk}),
@@ -77,8 +84,9 @@ class UserTestCase(APITestCase):
 
         self.assertEqual(
             response.json(),
-            {'id': self.user.pk, 'email': '12@ya.ru', 'avatar': None, 'phone': None, 'city': None,
-             'password': '1234567'}
+            {'id': self.user.pk, 'email': '12@ya.ru',
+             'avatar': None, 'phone': None, 'city': None,
+             'password': '1234567', 'chat_id': '2345'}
         )
 
     def test_delete_user(self):
@@ -91,4 +99,3 @@ class UserTestCase(APITestCase):
             response.status_code,
             status.HTTP_204_NO_CONTENT
         )
-

@@ -9,10 +9,13 @@ class User(AbstractUser):
     username = None
 
     email = models.EmailField(unique=True, verbose_name='email')
-    avatar = models.ImageField(upload_to='users/', verbose_name='аватар', **NULLABLE)
+    avatar = models.ImageField(upload_to='users/', verbose_name='аватар',
+                               **NULLABLE)
     phone = models.CharField(verbose_name='телефон', **NULLABLE)
     city = models.CharField(max_length=50, verbose_name='город', **NULLABLE)
     is_active = models.BooleanField(default='True', verbose_name='активность')
+    chat_id = models.CharField(max_length=100,
+                               verbose_name='чат айди в телеграм')
 
     USERNAME_FIELD = 'email'
     REQUIRED_FIELDS = []
