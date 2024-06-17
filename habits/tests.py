@@ -297,6 +297,33 @@ class HabitTestCase(APITestCase):
             'time_to_complete': 100,
             'user': self.user.id
         }
+        
+        response = self.client.post(reverse('habits:habit_create'), data=data)
+
+        self.assertEqual(
+            response.status_code,
+            status.HTTP_400_BAD_REQUEST
+        )
+
+        self.assertEqual(
+            response.json(),
+            ['Нельзя выполнять привычку реже, чем 1 раз в 7 дней.']
+        )
+
+    def test_validator_rel_is_nice(self):
+        """Тест валидатора связанных + приятных привычек"""
+        data = {
+            'id': self.habit.id,
+            'action': '3',
+            'is_public': True,
+            'is_nice_habit': False,
+            'periodicity': 5,
+            'place': '1',
+            'related_habit': self.habit.id,
+            'time': '18:00:00',
+            'time_to_complete': 100,
+            'user': self.user.id
+        }
 
         response = self.client.post(reverse('habits:habit_create'), data=data)
 
@@ -323,4 +350,6 @@ class HabitTestCase(APITestCase):
         mock_post.assert_called_once_with(
             f"https://api.telegram.org/bot{token}/sendMessage",
             data={"chat_id": chat_id, "text": message}
+=======
+            ['В связанные привычки могут попадать только привычки с признаком приятной привычки.']
         )
